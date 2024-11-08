@@ -10,8 +10,6 @@ class myNetwork(object):
 
     def __init__(self, N, Dmax):
         self.net = IzNetwork(N, Dmax)
-        # store the weights before scaling
-        self.origin_W = np.zeros((N, N))
         # store the scaled weights
         self._W = np.zeros((N, N))
         self.rewire_p = 0
@@ -67,10 +65,6 @@ class myNetwork(object):
         # no self-connections
         for i in range(200):
             in_to_in[i][i] = 0
-        
-        ori_ex_to_all = np.concatenate((ex_to_ex, ex_to_in), axis=1)
-        ori_in_to_all = np.concatenate((in_to_ex, in_to_in), axis=1)
-        self.origin_W = np.concatenate((ori_ex_to_all, ori_in_to_all), axis=0)
 
         # concat to (1000, 1000)
         ex_to_all = np.concatenate((ex_to_ex*17, ex_to_in*50), axis=1)
@@ -83,14 +77,16 @@ class myNetwork(object):
 
     def set_parameters(self):
         # 800 excitatory neurons
+        ex_r = np.random.rand(800)
         ex_a = 0.02*np.ones(800)
         ex_b = 0.2*np.ones(800)
-        ex_c = -65*np.ones(800)
-        ex_d = 8*np.ones(800)
+        ex_c = -65 + 15*(ex_r**2)
+        ex_d = 8 - 6*(ex_r**2)
 
         # 200 inhibitory neurons
-        in_a = 0.02*np.ones(200)
-        in_b = 0.25*np.ones(200)
+        in_r = np.random.rand(200)
+        in_a = 0.02 + 0.08 * in_r
+        in_b = 0.25 - 0.05 * in_r
         in_c = -65*np.ones(200)
         in_d = 2*np.ones(200)
 
@@ -126,7 +122,6 @@ class myNetwork(object):
                     if self._W [i, j] == 17:
                         if np.random.rand() < p:
                             self._W [i, j] = 0
-                            self.origin_W[i, j] = 0
                             # select a random neuron index from other modules
                             if k == 0:
                                 remain_idx = random.randint(100, 799)
@@ -140,7 +135,6 @@ class myNetwork(object):
                                     remain_idx = random.randint((k + 1) * 100, 799)
 
                             self._W [i, remain_idx] = 17
-                            self.origin_W[i, remain_idx] = 1
         self.net.setWeights(self._W)
 
 
@@ -156,27 +150,10 @@ class myNetwork(object):
         plt.show()
 
 
-    def get_small_world_index(self):
-        A = np.abs(self.origin_W)
-        N = A.shape[0]
-        k = A.sum(axis=0).mean()
-        pl_rand = np.log(N)/np.log(k)
-        cc_rand = k/N
-
-        # cc of weighted directed network
-        cc = bct.clustering_coef_wd(A).mean()
-        # pl = bct.charpath(bct.distance_wei(A)[1])[0]
-        distance_matrix, _ = bct.distance_wei(A)  # Distance matrix
-        pl = np.mean(distance_matrix[distance_matrix != np.inf])  # Characteristic path length
-
-        self.sigma = (cc/cc_rand)/(pl/pl_rand)
-
-
     def set_all(self):
         self.set_weights()
         self.set_delays()
         self.set_parameters()
-        self.get_small_world_index()
 
 
     def plot_raster(self, T):
@@ -202,7 +179,7 @@ class myNetwork(object):
 
         plt.figure(figsize=(10, 3))
         plt.scatter(t, n, s=5)
-        plt.title("p=" + str(self.rewire_p) + ", small-world index =" + f'{self.sigma:.4f}')
+        plt.title("p=" + str(self.rewire_p))
         plt.xlabel('Time (ms)')
         plt.ylabel('Neuron index')
         plt.show()
