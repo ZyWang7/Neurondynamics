@@ -111,8 +111,8 @@ class Network:
         self.c = np.zeros(self.N)
         self.d = np.zeros(self.N)
         self.delays = np.ones((self.N, self.N), dtype=int)
-        self.r_e = rn.rand(800)
-        self.r_i = rn.rand(200)
+        self.r_e = rn.rand(num_e_neurons * num_e_modules)
+        self.r_i = rn.rand(num_i_neurons * num_i_modules)
 
         # create excitatory modules
         for i in range(num_e_modules):
