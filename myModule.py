@@ -284,31 +284,36 @@ class myNetwork(object):
         plt.show()
 
 
-    def plot_mean_fire_rate(self, window_size, step_size, num_windows):
+    def plot_mean_fire_rate(self, window_size, step_size):
         """
         Plots the mean firing rate in each of the eight modules over a 1000 ms 
         run, using a sliding time window.
         Input:
             window_size -- The size of each window in ms.
             step_size   -- Time shift (in ms) between consecutive windows.
-            num_windows -- Total number of windows to calculate mean firing
-                           rates over.
-        """
+        """ 
+        # total number of time steps in ms
+        total_time = self._V.shape[0]  
+        # number of sliding windows
+        num_windows = (total_time - window_size) // step_size + 1
         # initialize an array to hold the mean firing rates (shape: (50, 8))
-        mean_firing_rates = np.zeros((num_windows, 8))
+        mean_firing_rates = np.zeros((num_windows, self.num_ex_module))
+        # binary matrix: True if a neuron fired (V > 29), False otherwise.
         fire = self._V > 29
+        # neurons per module
+        x = self.num_ex // self.num_ex_module
+        
         # loop over each time window
         for w in range(num_windows):
             start = w * step_size
             end = start + window_size
             
             # compute the mean firing rate for each module in this window
-            x = self.num_ex // self.num_ex_module
             for k in range(self.num_ex_module):
                 # select the neurons in the current module (columns of `V`)
                 module_neurons = fire[start:end, k * x:(k+1) * x]
                 # calculate the mean firing rate over the selected window
-                mean_firing_rates[w, k] = np.mean(module_neurons)
+                mean_firing_rates[w, k] = np.sum(module_neurons) / window_size
 
         # plot the mean firing rate for each module
         time_points = np.arange(0, num_windows * step_size, step_size)  # time points for x-axis
