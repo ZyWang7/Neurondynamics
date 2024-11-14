@@ -1,4 +1,4 @@
-<div style="text-align: justify; font-size: 11px; line-height: 1.5;">
+<div style="text-align: justify; font-size: 12px;">
 <body>
 
 ## Computational Neurodynamics Coursework 1
