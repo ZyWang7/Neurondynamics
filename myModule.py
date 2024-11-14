@@ -328,3 +328,21 @@ class myNetwork(object):
         plt.legend()
         plt.show()
 
+
+""" Example usage: """
+if __name__ == '__main__':
+    num_ex = 800
+    num_in = 200
+    num_ex_module = 8
+    Dmax = 20
+    p = 0.1
+    T = 1000
+    window_size = 50
+    step_size = 20
+
+    myNet = myNetwork(num_ex, num_in, num_ex_module, Dmax)
+    myNet.set_all()
+    myNet.rewire(p)
+    myNet.plot_connectivity()
+    myNet.plot_raster(T)
+    myNet.plot_mean_fire_rate(window_size, step_size)
